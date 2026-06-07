@@ -2455,6 +2455,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlexSettings'
+  /settings/plex/process:
+    post:
+      summary: Process Plex media
+      description: Processes a single Plex media item by rating key.
+      tags:
+        - settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ratingKey:
+                  type: string
+                rating_key:
+                  type: string
+              anyOf:
+                - required:
+                    - ratingKey
+                - required:
+                    - rating_key
+      responses:
+        '200':
+          description: Plex media was processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ratingKey:
+                    type: string
+                  type:
+                    type: string
+                  title:
+                    type: string
+        '400':
+          description: Plex rating key is missing
+        '500':
+          description: Plex media could not be processed
   /settings/plex/library:
     get:
       summary: Get Plex libraries
