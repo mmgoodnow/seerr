@@ -1,0 +1,10 @@
+name: Build mmgoodnow image
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    uses: mmgoodnow/cd/.github/workflows/docker-amd64.yml@main
+    secrets: inherit

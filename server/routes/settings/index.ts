@@ -19,7 +19,7 @@ import cacheManager from '@server/lib/cache';
 import ImageProxy from '@server/lib/imageproxy';
 import { Permission } from '@server/lib/permissions';
 import { jellyfinFullScanner } from '@server/lib/scanners/jellyfin';
-import { plexFullScanner } from '@server/lib/scanners/plex';
+import { plexFullScanner, plexRecentScanner } from '@server/lib/scanners/plex';
 import type { JobId, Library, MainSettings } from '@server/lib/settings';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
@@ -107,6 +107,38 @@ settingsRoutes.post('/main/regenerate', async (req, res, next) => {
   }
 
   return res.status(200).json(filteredMainSettings(req.user, main));
+});
+
+settingsRoutes.post('/plex/process', async (req, res, next) => {
+  const ratingKey = req.body?.ratingKey ?? req.body?.rating_key;
+
+  if (!ratingKey || typeof ratingKey !== 'string') {
+    return next({
+      status: 400,
+      message: 'Plex ratingKey is required.',
+    });
+  }
+
+  try {
+    const metadata = await plexRecentScanner.processRatingKey(ratingKey);
+
+    return res.status(200).json({
+      ratingKey: metadata.ratingKey,
+      type: metadata.type,
+      title: metadata.title,
+    });
+  } catch (e) {
+    logger.error('Failed to process pushed Plex media', {
+      label: 'Plex Scan',
+      ratingKey,
+      errorMessage: e.message,
+    });
+
+    return next({
+      status: 500,
+      message: 'Unable to process Plex media.',
+    });
+  }
 });
 
 settingsRoutes.get('/plex', (_req, res) => {
